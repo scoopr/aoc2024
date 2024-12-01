@@ -1,48 +1,38 @@
-fn pair_up(
-    input: &str,
-) -> (
-    impl Iterator<Item = i32> + Clone + '_,
-    impl Iterator<Item = i32> + Clone + '_,
-) {
-    let pairs = input.lines().map(|line| {
+fn parse_list(input: &str) -> impl Iterator<Item = (i32, i32)> + Clone + '_ {
+    input.lines().map(|line| {
         let mut split = line.split("   ");
         let left = split.next().expect("left column");
         let right = split.next().expect("right column");
         (
-            left.parse().expect("number"),
-            right.parse().expect("number"),
+            left.parse().expect("left number"),
+            right.parse().expect("right number"),
         )
-    });
-
-    let lefts = pairs.clone().map(|p| p.0);
-    let rights = pairs.map(|p| p.1);
-
-    (lefts, rights)
+    })
 }
 
-fn sorted(input: impl Iterator<Item = i32>) -> impl Iterator<Item = i32> {
-    let mut vals = input.collect::<Vec<_>>();
-    vals.sort();
-    vals.into_iter()
+fn sorted(input: impl Iterator<Item = (i32, i32)>) -> impl Iterator<Item = (i32, i32)> {
+    let (mut lefts, mut rights): (Vec<_>, Vec<_>) = input.unzip();
+    lefts.sort();
+    rights.sort();
+    lefts.into_iter().zip(rights)
 }
 
-fn diff_sum(left: impl Iterator<Item = i32>, right: impl Iterator<Item = i32>) -> u32 {
-    left.zip(right).map(|pair| pair.0.abs_diff(pair.1)).sum()
+fn diff_sum(input: impl Iterator<Item = (i32, i32)>) -> u32 {
+    input.map(|pair| pair.0.abs_diff(pair.1)).sum()
 }
 
 // part two
-fn similarity(left: impl Iterator<Item = i32>, right: impl Iterator<Item = i32> + Clone) -> usize {
-    left.fold(0, |s, l| {
-        let c = right.clone().filter(|r| *r == l).count();
+fn similarity(input: impl Iterator<Item = (i32, i32)> + Clone) -> usize {
+    input.clone().fold(0, |s, (l, _)| {
+        let c = input.clone().filter(|(_, r)| *r == l).count();
         s + (l as usize) * c
     })
 }
 
 fn main() {
-    let paired = pair_up(INPUT);
-    let paired2 = paired.clone();
-    let diff = diff_sum(sorted(paired.0), sorted(paired.1));
-    let simi = similarity(paired2.0, paired2.1);
+    let list = parse_list(INPUT);
+    let diff = diff_sum(sorted(list.clone()));
+    let simi = similarity(list);
     println!("{diff} {simi}");
 }
 
