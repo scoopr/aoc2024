@@ -1,16 +1,16 @@
-fn pair_up<'a>(
-    input: &'a str,
+fn pair_up(
+    input: &str,
 ) -> (
-    impl Iterator<Item = i32> + Clone + 'a,
-    impl Iterator<Item = i32> + Clone + 'a,
+    impl Iterator<Item = i32> + Clone + '_,
+    impl Iterator<Item = i32> + Clone + '_,
 ) {
     let pairs = input.lines().map(|line| {
         let mut split = line.split("   ");
         let left = split.next().expect("left column");
         let right = split.next().expect("right column");
         (
-            left.parse::<i32>().expect("number"),
-            right.parse::<i32>().expect("number"),
+            left.parse().expect("number"),
+            right.parse().expect("number"),
         )
     });
 
