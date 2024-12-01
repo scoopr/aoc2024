@@ -20,15 +20,10 @@ fn pair_up<'a>(
     (lefts, rights)
 }
 
-fn sorted(
-    left: impl Iterator<Item = i32>,
-    right: impl Iterator<Item = i32>,
-) -> (impl Iterator<Item = i32>, impl Iterator<Item = i32>) {
-    let mut lefts = left.collect::<Vec<_>>();
-    let mut rights = right.collect::<Vec<_>>();
-    lefts.sort();
-    rights.sort();
-    (lefts.into_iter(), rights.into_iter())
+fn sorted(input: impl Iterator<Item = i32>) -> impl Iterator<Item = i32> {
+    let mut vals = input.collect::<Vec<_>>();
+    vals.sort();
+    vals.into_iter()
 }
 
 fn diff_sum(left: impl Iterator<Item = i32>, right: impl Iterator<Item = i32>) -> u32 {
@@ -46,8 +41,7 @@ fn similarity(left: impl Iterator<Item = i32>, right: impl Iterator<Item = i32> 
 fn main() {
     let paired = pair_up(INPUT);
     let paired2 = paired.clone();
-    let sorted = sorted(paired.0, paired.1);
-    let diff = diff_sum(sorted.0, sorted.1);
+    let diff = diff_sum(sorted(paired.0), sorted(paired.1));
     let simi = similarity(paired2.0, paired2.1);
     println!("{diff} {simi}");
 }
