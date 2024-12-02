@@ -19,13 +19,16 @@ fn parse_levels(input: &str) -> impl Iterator<Item = i32> + Clone + '_ {
         .map(|val| val.parse().expect("number"))
 }
 
-fn safe_order(mut input: impl Iterator<Item = i32>) -> bool {
+fn safety_checks(mut input: impl Iterator<Item = i32>) -> bool {
     let first = input.next();
     if let Some(value) = first {
         input
-            .try_fold(value.signum(), |acc, x| {
-                if x.signum() == acc {
-                    Some(acc)
+            .try_fold((0, value), |acc, x| {
+                let diff = x - acc.1;
+                let safe_order = diff.signum() == acc.0 || acc.0 == 0;
+                let safe_diff = (1..=3).contains(&diff.abs());
+                if safe_order && safe_diff {
+                    Some((diff.signum(), x))
                 } else {
                     None
                 }
@@ -36,10 +39,6 @@ fn safe_order(mut input: impl Iterator<Item = i32>) -> bool {
     }
 }
 
-fn safe_difference(mut input: impl Iterator<Item = i32>) -> bool {
-    input.all(|d| d.abs() >= 1 && d.abs() <= 3)
-}
-
 fn check_safety(input: &str, problem_dampener: bool) -> bool {
     let input_values = parse_levels(input).collect::<Vec<_>>();
     let differences = input_values
@@ -48,8 +47,7 @@ fn check_safety(input: &str, problem_dampener: bool) -> bool {
         .map(|(l, r)| r - l)
         .collect::<Vec<_>>();
 
-    let safe =
-        safe_difference(differences.iter().cloned()) && safe_order(differences.iter().cloned());
+    let safe = safety_checks(input_values.iter().cloned()); //differences.iter().cloned());
 
     if !safe && problem_dampener {
         for i in 0..=differences.len() {
@@ -59,15 +57,8 @@ fn check_safety(input: &str, problem_dampener: bool) -> bool {
                 .enumerate()
                 .filter_map(|(idx, v)| if idx == i { None } else { Some(v) });
 
-            let differences_skipped = iter_skipped
-                .clone()
-                .zip(iter_skipped.skip(1))
-                .map(|(l, r)| r - l);
-            let sd = safe_difference(differences_skipped.clone());
-            let so = safe_order(differences_skipped);
-            let safe = sd && so;
-            if safe {
-                return safe;
+            if safety_checks(iter_skipped) {
+                return true;
             }
         }
     }
