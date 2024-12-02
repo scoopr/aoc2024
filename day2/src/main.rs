@@ -19,20 +19,64 @@ fn parse_levels(input: &str) -> impl Iterator<Item = i32> + Clone + '_ {
         .map(|val| val.parse().expect("number"))
 }
 
-fn check_safety(input: &str) -> bool {
-    let mut differences = parse_levels(input)
-        .zip(parse_levels(input).skip(1))
-        .map(|(l, r)| r - l);
+fn safe_order(mut input: impl Iterator<Item = i32>) -> bool {
+    let first = input.next();
+    if let Some(value) = first {
+        input
+            .try_fold(value.signum(), |acc, x| {
+                if x.signum() == acc {
+                    Some(acc)
+                } else {
+                    None
+                }
+            })
+            .is_some()
+    } else {
+        true
+    }
+}
 
-    let safe_order = differences.clone().map(|v| v.signum()).sum::<i32>().abs() as usize
-        == differences.clone().count();
+fn safe_difference(mut input: impl Iterator<Item = i32>) -> bool {
+    input.all(|d| d.abs() >= 1 && d.abs() <= 3)
+}
 
-    let safe_difference = differences.find(|d| d.abs() < 1 || d.abs() > 3).is_none();
-    safe_difference && safe_order
+fn check_safety(input: &str, problem_dampener: bool) -> bool {
+    let input_values = parse_levels(input).collect::<Vec<_>>();
+    let differences = input_values
+        .iter()
+        .zip(input_values.iter().skip(1))
+        .map(|(l, r)| r - l)
+        .collect::<Vec<_>>();
+
+    let safe =
+        safe_difference(differences.iter().cloned()) && safe_order(differences.iter().cloned());
+
+    if !safe && problem_dampener {
+        for i in 0..differences.len() {
+            let iter_skipped = input_values
+                .iter()
+                .cloned()
+                .enumerate()
+                .filter_map(|(idx, v)| if idx == i { None } else { Some(v) });
+
+            let differences_skipped = iter_skipped
+                .clone()
+                .zip(iter_skipped.skip(1))
+                .map(|(l, r)| r - l);
+            let sd = safe_difference(differences_skipped.clone());
+            let so = safe_order(differences_skipped);
+            let safe = sd && so;
+            if safe {
+                return safe;
+            }
+        }
+    }
+
+    safe
 }
 
 fn main() {
-    let report_safety = parse_report(INPUT).map(|line| check_safety(line));
+    let report_safety = parse_report(INPUT).map(|line| check_safety(line, true));
 
     let safe_count: i32 = report_safety.map(|s| s as i32).sum();
 
