@@ -52,7 +52,7 @@ fn check_safety(input: &str, problem_dampener: bool) -> bool {
         safe_difference(differences.iter().cloned()) && safe_order(differences.iter().cloned());
 
     if !safe && problem_dampener {
-        for i in 0..differences.len() {
+        for i in 0..=differences.len() {
             let iter_skipped = input_values
                 .iter()
                 .cloned()
@@ -76,12 +76,11 @@ fn check_safety(input: &str, problem_dampener: bool) -> bool {
 }
 
 fn main() {
-    let report_safety = parse_report(INPUT).map(|line| check_safety(line, true));
-
+    let report_safety = parse_report(INPUT).map(|line| check_safety(line, false));
     let safe_count: i32 = report_safety.map(|s| s as i32).sum();
 
-    // for safety in report_safety {
-    //     println!("{safety}");
-    // }
-    println!("{safe_count}");
+    let report_safety2 = parse_report(INPUT).map(|line| check_safety(line, true));
+    let safe_count2: i32 = report_safety2.map(|s| s as i32).sum();
+
+    println!("{safe_count} {safe_count2}");
 }
