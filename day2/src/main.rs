@@ -41,16 +41,11 @@ fn safety_checks(mut input: impl Iterator<Item = i32>) -> bool {
 
 fn check_safety(input: &str, problem_dampener: bool) -> bool {
     let input_values = parse_levels(input).collect::<Vec<_>>();
-    let differences = input_values
-        .iter()
-        .zip(input_values.iter().skip(1))
-        .map(|(l, r)| r - l)
-        .collect::<Vec<_>>();
 
-    let safe = safety_checks(input_values.iter().cloned()); //differences.iter().cloned());
+    let safe = safety_checks(input_values.iter().cloned());
 
     if !safe && problem_dampener {
-        for i in 0..=differences.len() {
+        for i in 0..=input_values.len() {
             let iter_skipped = input_values
                 .iter()
                 .cloned()
